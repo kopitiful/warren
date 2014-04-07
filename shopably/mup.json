@@ -1,0 +1,34 @@
+{
+  "servers": [
+    {
+      "host": "www.shopably.co",
+      "username": "root",
+      "password": "shopably"
+    }
+  ],
+
+  //install MongoDB in the server, does not destroy local mongo db on future setup
+  "setupMongo": true,
+  
+  //WARNING: Nodejs is required! Only skip if you already have nodejs installed on server.
+  "setupNode": true,
+  
+  //WARNING: If nodeVersion omitted will setup 0.10.25 by default. Do not use v, only version number.
+  "nodeVersion": "0.10.25",
+  
+  //install PhantomJS in the server
+  "setupPhantom": true,
+
+  //location of app (local directory)
+  "app": "/Users/timhuebner/shopably/app",
+
+  //configure environmental
+  "env": {
+    "ROOT_URL": "http://www.shopably.co",
+    "MAIL_URL": "smtp://tilohue%40gmx.de:shopably.@smtp.mandrillapp.com:587"
+  },
+
+  //meteor-up checks if the app comes online just after the deployment
+  //before mup checks that, it will wait for no. of seconds configured below
+  "deployCheckWaitTime": 15
+}

@@ -1,0 +1,43 @@
+#!/usr/bin/env coffee
+
+program = require 'commander'
+child_process = require('child_process')
+exec = child_process.exec
+spawn = child_process.spawn
+
+program
+.version('0.0.1')
+
+program
+.command('local')
+.action( () ->
+  console.log 'start in local environment'
+
+  process.env['MAIL_URL'] = 'smtp://mail%40manuel-schoebel.com:e9v2wsjFtF2rT5asZyOiNA@smtp.mandrillapp.com:587'
+  #process.env['APP_DYN_CONTENT_DIR'] = '/Users/Manuel/Workspace/com/buzzbroker/uploads/'
+
+  mrt = spawn('mrt', ['--settings', '../config/local.json'], { 
+    cwd: './app'
+    env: process.env
+  })
+
+  mrt.stdout.on('data', (data) ->
+    console.log('stdout: ' + data)
+  )
+
+  mrt.stderr.on('data', (data) ->
+    console.log('stderr: ' + data)
+  )
+
+  mrt.on('close', (code) ->
+    console.log('child process exited with code ' + code)
+  )
+)
+
+program
+.command('*')
+.action( () ->
+  console.log 'Start local, development or production'
+)
+
+program.parse(process.argv)

@@ -1,0 +1,32 @@
+{
+  "public": {
+    "env": "local",
+    "appName": "shopably"
+  },
+  "instagram": {
+    "client_id": "1fef25d627184a0b8d0f6aa9a8f3005a",
+    "client_secret": "88f2e5c0144e4547a9566ad60ac1ac4e",
+    "verify_token": "shopably_forsale"
+  },
+  "paypal":{
+    "USER":"manuel-facilitator_api1.paypertise.com",
+    "PWD":"1378472401",
+    "SIGNATURE":"ASE0taFxLyHsTXcSNN8nsrdrBH-PAqE05lEydt7GFNT7zH30XS0d2oh2",
+    "app_id": "APP-80W284485P519543T",
+    "client_id":"Aew_aRCGG-5YvO9m-ETlyEVs_1H6Q02bQctGtHjG3NEQUCuW_yj3MsS7FT8U",
+    "secret":"ENAEsBCP4UKfZE7db394hCRjGKyOQB5in162QfR4WmvyxR0tcSVPIk5I-zMY",
+    "api_url":"https://svcs.sandbox.paypal.com/AdaptivePayments/Pay",
+    "VERSION":"94.0",
+    "host":"sandbox.paypal.com",
+    "sandbox":true,
+    "RETURNURL":"http://localhost:3000/payment/paypal/return",
+    "CANCELURL":"http://localhost:3000/payment/paypal/cancel",
+    "redirectUrl": "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_ap-payment&paykey="
+  },
+  "mandrill":{
+    "api_key": "e9v2wsjFtF2rT5asZyOiNA"
+  },
+  "email": {
+    "from": "noreply@shopably.com"
+  }
+}
