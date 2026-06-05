@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coding Activity — TLH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #0d1b2a;
+      --bg2:     #112236;
+      --surface: #162a3f;
+      --border:  rgba(255,255,255,0.08);
+      --accent:  #5bafd6;
+      --muted:   #8ab0c4;
+      --text:    #ffffff;
+      --font:    'Syne', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font); font-size: 14px;
+      min-height: 100vh; padding: 48px 24px;
+    }
+    body.embed {
+      padding: 20px 24px;
+      background: transparent;
+    }
+    body.embed .back,
+    body.embed .header { display: none; }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.015;
+    }
+    .page { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+
+    /* Back link */
+    .back {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none;
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 48px; transition: color 0.2s;
+    }
+    .back:hover { color: var(--accent); }
+
+    /* Header */
+    .header { margin-bottom: 48px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 16px;
+    }
+    .eyebrow::before { content: ''; display: block; width: 28px; height: 1px; background: var(--accent); }
+    h1 {
+      font-size: clamp(36px, 5vw, 60px); font-weight: 800;
+      letter-spacing: -0.04em; line-height: 1.0; margin-bottom: 12px;
+    }
+    h1 em { color: var(--accent); font-weight: 400; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .updated { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 6px; letter-spacing: 0.06em; }
+
+    /* Card */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px; margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+    }
+    .stat-total { display: flex; align-items: baseline; gap: 10px; }
+    .stat-num {
+      font-size: 40px; font-weight: 800;
+      letter-spacing: -0.04em; color: var(--accent);
+    }
+    .stat-label { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    .tabs { display: flex; gap: 4px; }
+    .tab {
+      padding: 6px 16px; border: 1px solid var(--border); border-radius: 6px;
+      background: transparent; color: var(--muted); font-family: var(--font);
+      font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .tab.active { background: var(--accent); color: #0d1b2a; border-color: var(--accent); }
+    .tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Heatmap */
+    .heatmap-wrap { overflow-x: auto; padding-bottom: 6px; }
+    .month-row {
+      display: flex; gap: 2px; padding-left: 22px;
+      margin-bottom: 4px; min-width: max-content;
+    }
+    .month-label {
+      font-size: 10px; color: var(--muted);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      display: inline-block; min-width: 12px;
+    }
+    .heatmap-body { display: flex; gap: 4px; min-width: max-content; }
+    .day-labels { display: flex; flex-direction: column; gap: 2px; }
+    .day-label {
+      height: 12px; font-size: 9px; color: var(--muted);
+      display: flex; align-items: center; width: 16px;
+    }
+    .grid { display: flex; gap: 2px; }
+    .col { display: flex; flex-direction: column; gap: 2px; }
+    .cell { width: 12px; height: 12px; border-radius: 2px; transition: opacity 0.15s; }
+    .cell:hover { opacity: 0.75; }
+    .cell[data-l="0"] { background: rgba(255,255,255,0.05); }
+    .cell[data-l="1"] { background: rgba(91,175,214,0.22); }
+    .cell[data-l="2"] { background: rgba(91,175,214,0.48); }
+    .cell[data-l="3"] { background: rgba(91,175,214,0.72); }
+    .cell[data-l="4"] { background: #5bafd6; }
+
+    .legend {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 14px; font-size: 10px; color: var(--muted); letter-spacing: 0.04em;
+    }
+    .legend-row { display: flex; gap: 2px; }
+
+    /* Bar charts */
+    .bar-chart {
+      display: flex; align-items: flex-end; gap: 5px;
+      height: 130px; padding-bottom: 22px; position: relative;
+    }
+    .bar-col {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end;
+      height: 100%; position: relative;
+    }
+    .bar-fill {
+      width: 100%; min-height: 2px; border-radius: 3px 3px 0 0;
+      background: linear-gradient(180deg, var(--accent) 0%, rgba(91,175,214,0.3) 100%);
+      transition: height 0.8s cubic-bezier(.23,1,.32,1);
+    }
+    .bar-lbl {
+      position: absolute; bottom: 0; font-size: 9px;
+      color: var(--muted); letter-spacing: 0.04em;
+      text-align: center; width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px 24px;
+    }
+    .stat-card .n { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--accent); }
+    .stat-card .l { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+
+    /* Streak */
+    .streak-row { display: flex; gap: 16px; flex-wrap: wrap; }
+
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .card { padding: 20px; }
+      .card-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <a class="back" href="index.html">← zurück zur Übersicht</a>
+
+  <div class="header">
+    <div class="eyebrow">Live Stats</div>
+    <h1>Coding <em>Activity</em></h1>
+    <div class="subtitle">GitHub-Contributions der letzten 12 Monate</div>
+    <div class="updated" id="updated"></div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="n" id="s-total">–</div><div class="l">Contributions</div></div>
+    <div class="stat-card"><div class="n" id="s-streak">–</div><div class="l">Longest Streak</div></div>
+    <div class="stat-card"><div class="n" id="s-best">–</div><div class="l">Best Day</div></div>
+  </div>
+
+  <!-- Main heatmap card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="stat-total">
+        <span class="stat-num" id="total-num">–</span>
+        <span class="stat-label">im letzten Jahr</span>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-v="year">Jahr</button>
+        <button class="tab" data-v="month">Monat</button>
+        <button class="tab" data-v="week">Woche</button>
+      </div>
+    </div>
+
+    <div id="v-year" class="view active">
+      <div class="heatmap-wrap">
+        <div class="month-row" id="month-row"></div>
+        <div class="heatmap-body">
+          <div class="day-labels">
+            <div class="day-label"></div>
+            <div class="day-label">Mo</div>
+            <div class="day-label"></div>
+            <div class="day-label">Mi</div>
+            <div class="day-label"></div>
+            <div class="day-label">Fr</div>
+            <div class="day-label"></div>
+          </div>
+          <div class="grid" id="heatmap-grid"></div>
+        </div>
+      </div>
+      <div class="legend">
+        <span>weniger</span>
+        <div class="legend-row">
+          <div class="cell" data-l="0"></div>
+          <div class="cell" data-l="1"></div>
+          <div class="cell" data-l="2"></div>
+          <div class="cell" data-l="3"></div>
+          <div class="cell" data-l="4"></div>
+        </div>
+        <span>mehr</span>
+      </div>
+    </div>
+
+    <div id="v-month" class="view">
+      <div class="bar-chart" id="chart-month"></div>
+    </div>
+
+    <div id="v-week" class="view">
+      <div class="bar-chart" id="chart-week"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  if (window.self !== window.top) document.body.classList.add('embed');
+
+  const DE_M = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+  function lvl(n) { return n===0?0:n<=2?1:n<=5?2:n<=9?3:4; }
+
+  function isoWeek(d) {
+    const dt = new Date(d); dt.setHours(0,0,0,0);
+    dt.setDate(dt.getDate()+4-(dt.getDay()||7));
+    return Math.ceil((((dt - new Date(dt.getFullYear(),0,1))/86400000)+1)/7);
+  }
+
+  function renderHeatmap(weeks) {
+    const grid = document.getElementById('heatmap-grid');
+    const mrow = document.getElementById('month-row');
+    grid.innerHTML = ''; mrow.innerHTML = '';
+    let lastM = -1, colCount = 0;
+    const mPositions = [];
+
+    weeks.forEach(week => {
+      if (!week.days.length) return;
+      const m = new Date(week.days[0].date+'T00:00:00').getMonth();
+      if (m !== lastM) { mPositions.push({m, wi: colCount}); lastM = m; }
+
+      const col = document.createElement('div');
+      col.className = 'col';
+      const pad = new Date(week.days[0].date+'T00:00:00').getDay();
+      for (let i=0;i<pad;i++) {
+        const e=document.createElement('div'); e.className='cell'; e.dataset.l='0'; col.appendChild(e);
+      }
+      week.days.forEach(d => {
+        const c=document.createElement('div'); c.className='cell'; c.dataset.l=lvl(d.count);
+        if(d.count>0) c.title=`${d.date}: ${d.count} Contributions`;
+        col.appendChild(c);
+      });
+      grid.appendChild(col);
+      colCount++;
+    });
+
+    for (let i=0;i<mPositions.length;i++) {
+      const {m,wi}=mPositions[i];
+      const next = i+1<mPositions.length ? mPositions[i+1].wi : colCount;
+      const span=document.createElement('span');
+      span.className='month-label';
+      span.textContent=DE_M[m];
+      span.style.width=((next-wi)*14)+'px';
+      mrow.appendChild(span);
+    }
+  }
+
+  function renderBars(id, entries) {
+    const el=document.getElementById(id);
+    el.innerHTML='';
+    const max=Math.max(...entries.map(e=>e.v),1);
+    entries.forEach(({l,v})=>{
+      const col=document.createElement('div'); col.className='bar-col';
+      const bar=document.createElement('div'); bar.className='bar-fill';
+      bar.style.height=(v/max*90)+'%'; bar.title=`${l}: ${v}`;
+      const lbl=document.createElement('div'); lbl.className='bar-lbl'; lbl.textContent=l;
+      col.appendChild(bar); col.appendChild(lbl); el.appendChild(col);
+    });
+  }
+
+  function computeStreak(days) {
+    let max=0, cur=0;
+    days.forEach(d => { if(d.count>0){cur++;max=Math.max(max,cur);}else{cur=0;} });
+    return max;
+  }
+
+  // Generate placeholder weeks for last 52 weeks when no real data
+  function makePlaceholder() {
+    const weeks = [];
+    const now = new Date();
+    // go back to most recent Sunday
+    const start = new Date(now);
+    start.setDate(start.getDate() - 364 - start.getDay());
+    let cur = new Date(start);
+    for (let w = 0; w < 53; w++) {
+      const days = [];
+      for (let d = 0; d < 7; d++) {
+        if (cur <= now) days.push({date: cur.toISOString().slice(0,10), count: 0});
+        cur.setDate(cur.getDate()+1);
+      }
+      if (days.length) weeks.push({days});
+    }
+    return {total: 0, weeks, generated: null};
+  }
+
+  async function init() {
+    let data;
+    try {
+      data = await fetch('./activity.json').then(r=>r.json());
+    } catch(e) { data = null; }
+
+    const empty = !data || !data.weeks || !data.weeks.length;
+    if (empty) data = makePlaceholder();
+
+    const allDays = data.weeks.flatMap(w=>w.days);
+    const bestDay = Math.max(...allDays.map(d=>d.count), 0);
+    const streak = computeStreak(allDays);
+
+    document.getElementById('total-num').textContent = empty ? '–' : (data.total||0).toLocaleString('de-DE');
+    document.getElementById('s-total').textContent = empty ? '–' : (data.total||0).toLocaleString('de-DE');
+    document.getElementById('s-streak').textContent = empty ? '–' : streak + ' d';
+    document.getElementById('s-best').textContent = empty ? '–' : bestDay;
+    document.getElementById('updated').textContent = data.generated ? 'Stand: '+data.generated : 'Daten noch nicht geladen — GitHub Action ausführen';
+
+    renderHeatmap(data.weeks);
+
+    if (!empty) {
+      // Monthly
+      const monthly={};
+      allDays.forEach(d=>{
+        const dt=new Date(d.date+'T00:00:00');
+        const k=DE_M[dt.getMonth()]+' '+String(dt.getFullYear()).slice(2);
+        monthly[k]=(monthly[k]||0)+d.count;
+      });
+      renderBars('chart-month', Object.entries(monthly).map(([l,v])=>({l,v})));
+
+      // Weekly last 16
+      const wEntries = data.weeks.slice(-16).map(w=>{
+        const total=w.days.reduce((s,d)=>s+d.count,0);
+        const d=w.days[0];
+        const lbl=d ? 'KW'+String(isoWeek(new Date(d.date+'T00:00:00'))).padStart(2,'0') : '–';
+        return {l:lbl, v:total};
+      });
+      renderBars('chart-week', wEntries);
+    }
+  }
+
+  init();
+
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('v-'+btn.dataset.v).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

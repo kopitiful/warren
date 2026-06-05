@@ -1,0 +1,30 @@
+name: Update Activity
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch contributions
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GH_USER: kopitiful
+        run: |
+          pip install requests -q
+          python3 scripts/generate_activity.py
+
+      - name: Commit activity.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add activity.json
+          git diff --cached --quiet || git commit -m "chore: update activity data"
+          git push
